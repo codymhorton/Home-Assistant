@@ -1,0 +1,114 @@
+title: Home
+views:
+  - icon: mdi:home
+    cards:
+      - type: entities
+        title: People
+        entities:
+          - sensor.cody
+          - sensor.cassidy
+      - type: entities
+        title: Vacation
+        entities:
+          - input_boolean.vacation_mode
+      - type: entities
+        title: Guests
+        entities:
+          - input_boolean.guest_mode
+      - type: entities
+        title: Front Door
+        entities:
+          - lock.front_door
+          - sensor.front_door
+      - type: conditional
+        conditions:
+          - entity: input_boolean.motion_service
+            state: "on"
+        card:
+          type: picture-glance
+          title: Living Room
+          entities:
+            - switch.candles
+            - switch.living_room_fan
+            - group.living_room_lamp_lights
+            - group.living_room_fan_lights
+            - camera.living_room
+          camera_image: camera.living_room
+      - type: conditional
+        conditions:
+          - entity: input_boolean.motion_service
+            state: "off"
+        card:
+          type:  entities
+          title: Living Room
+          entities:
+            - switch.candles
+            - switch.living_room_fan
+            - group.living_room_lamp_lights
+            - group.living_room_fan_lights
+      - type: entities
+        title: Kitchen
+        entities:
+          - switch.kitchen_light
+          - sensor.freezer
+          - sensor.fridge
+      - type: entities
+        title: Hallway
+        entities:
+          - light.hallway_light_1
+          - light.hallway_light_2
+      - type: entities
+        title: Bathroom
+        entities:
+          - switch.bathroom_plug
+      - type: entities
+        title: Master Bedroom
+        entities:
+          - light.bedroom_lamp_1
+          - light.bedroom_lamp_2
+      - type: entities
+        title: Climate
+        entities:
+          - climate.nest
+      - type: entities
+        title: Vacuum
+        entities:
+          - vacuum.xiaomi_vacuum_cleaner
+      - type: entities
+        title: Printer
+        entities:
+          - camera.printer
+  - icon: mdi:theater
+    cards:
+      - type: entities
+        title: Entertainment Center
+        entities:
+          - switch.tv
+          - switch.soundbar
+          - switch.volume
+      - type: media-control
+        entity: media_player.living_room_tv
+      - type: media-control
+        entity: media_player.home_group
+      - type: media-control
+        entity: media_player.googlehome8995
+      - type: media-control
+        entity: media_player.bathroom_speaker
+      - type: media-control
+        entity: media_player.bedroom_speaker
+  - icon: mdi:desktop-classic
+    cards:
+      - type: entities
+        title: Pi
+        entities:
+          - sensor.processor_use
+          - sensor.memory_use_percent
+          - sensor.disk_free_
+          - sensor.since_last_boot
+          - sensor.ssl_certificate_expiry
+      - type: entities
+        title: Home PC
+        entities:
+          - switch.onoff
+
+

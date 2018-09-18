@@ -1,0 +1,301 @@
+- alias: 'Fridge Open 1'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.ecolink_doorwindow_sensor_sensor_2
+    from: 'off'
+    to: 'on'
+    for:
+      minutes: 2
+  action:
+    - service: notify.email
+      data:
+        title: 'Fridge/Freezer is open'
+        message: 'Freezer is open'
+
+- alias: 'Fridge Open 2'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.ecolink_doorwindow_sensor_sensor_2
+    from: 'off'
+    to: 'on'
+    for:
+      minutes: 3
+  action:
+    - service:  media_player.volume_set
+      entity_id: media_player.home_group
+      data:
+        volume_level: 0.8
+    - service: tts.google_say
+      entity_id: media_player.home_group
+      data:
+        message: 'Warning, the fridge and or freezer door is open. Warning, the fridge and or freezer door is open.'
+    - delay: '00:00:15'
+    - service:  media_player.volume_set
+      entity_id: media_player.home_group
+      data:
+        volume_level: 0.5
+
+- alias: 'Guests Arrive'
+  trigger:
+    platform: state
+    entity_id: input_boolean.guest_mode
+    from: 'off'
+    to: 'on'
+  action:
+    - service: input_number.set_value
+      data:
+        entity_id: input_number.air_temp
+        value: 75
+
+- alias: 'Guests Leave'
+  trigger:
+    platform: state
+    entity_id: input_boolean.guest_mode
+    from: 'on'
+    to: 'off'
+  action:
+    - service: input_number.set_value
+      data:
+        entity_id: input_number.air_temp
+        value: 78
+
+- alias: 'Weekday Evening AC'
+  trigger:
+    platform: time
+    at: '17:04:00'
+  condition:
+    - condition: time
+      weekday:
+         - mon
+         - tue
+         - wed
+         - thu
+         - fri
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: 'off'
+    - condition: state
+      entity_id: binary_sensor.cassidy_presence
+      state: 'off'
+    - condition: state
+      entity_id: binary_sensor.cody_presence
+      state: 'off'
+  action:
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.nest
+        operation_mode: 'auto'
+    - service: climate.set_temperature
+      data:
+        entity_id: climate.nest
+        target_temp_high: '80'
+        target_temp_low: '63'
+
+- alias: 'Set Home'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.cassidy_presence, binary_sensor.cody_presence
+    to: 'on'
+    for:
+      minutes: 5
+  action:
+    - service: input_boolean.turn_on
+      data:
+        entity_id: input_boolean.home
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.vacation_mode
+
+- alias: 'Set Away'
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.cassidy_presence
+      to: 'off'
+      for:
+        minutes: 5
+    - platform: state
+      entity_id: binary_sensor.cody_presence 
+      to: 'off'
+      for:
+        minutes: 5
+  action:
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.home
+
+- alias: 'Door Closed'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.ecolink_doorwindow_sensor_sensor_2
+    to: 'off'
+    for:
+      minutes: 10
+  action:
+    - service: input_boolean.turn_on
+      data:
+        entity_id: input_boolean.door_closed
+
+- alias: 'Arrive Home'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.ecolink_doorwindow_sensor_sensor_2
+    from: 'off'
+    to: 'on'
+  condition:
+    - condition: state
+      entity_id: input_boolean.home
+      state: 'off'
+    - condition: state
+      entity_id: input_boolean.door_closed
+      state: 'on'
+  action:
+    - service: light.turn_on
+      entity_id: light.living_room
+    - service: light.turn_on
+      data:
+        entity_id: light.hyperion
+        rgb_color: [255,190,100]
+    - service: switch.turn_on
+      entity_id: switch.kitchen_light
+    - service: switch.turn_on
+      entity_id: switch.bathroom_plug
+    - service_template: >-
+        {% if states.climate.nest.attributes.current_temperature | int > 72 %}
+        switch.turn_on
+        {% endif %}
+      entity_id: switch.living_room_fan
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.nest
+        operation_mode: 'auto'
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.nest
+        target_temp_high: '{{ states.input_number.air_temp.state | int}}'
+        target_temp_low: '65'
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.door_closed
+    - service: shell_command.tv_on
+    - delay: '00:00:25'
+    - service: shell_command.tv_change
+
+- alias: 'SSL Expiry Notify'
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.ssl_certificate_expiry
+    below: 10
+  action:
+    service: notify.pushbullet
+    data:
+      message: 'SSL expires soon'
+
+- alias: 'Chromecast Playing'
+  trigger:
+    - platform: state
+      entity_id: media_player.living_room_tv
+      to: 'playing'
+      from: 'idle'
+    - platform: state
+      entity_id: media_player.living_room_tv
+      from: 'paused'
+      to: 'playing'
+    - platform: state
+      entity_id: media_player.living_room_tv
+      to: 'playing'
+      from: 'off'
+  action:
+    - service_template: >
+        {% if is_state('input_boolean.soundbar', 'off') %}
+          switch.turn_on
+        {% endif %}
+      entity_id: switch.soundbar
+    - service_template: >
+        {% if is_state('input_boolean.soundbar', 'off') %}
+          input_boolean.turn_on
+        {% endif %}
+      entity_id: input_boolean.soundbar
+
+- alias: 'TV Volume Up'
+  trigger:
+    platform: state
+    entity_id: input_number.tv_volume_up
+    from: '0.0'
+  action:
+    service: script.tv_volume_up1
+- alias: 'TV Volume Down'
+  trigger:
+    platform: state
+    entity_id: input_number.tv_volume_down
+    from: '0.0'
+  action:
+    service: script.tv_volume_down1
+
+- alias: 'Soundbar Off'
+  trigger:
+    platform: state
+    entity_id: switch.vizio_soundbar
+    from: 'on'
+    to: 'off'
+  action:
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.soundbar
+
+- alias: 'Soundbar Timeout'
+  trigger:
+    - platform: state
+      entity_id: media_player.living_room_tv
+      from: 'playing'
+      to: 'off'
+      for:
+        minutes: 15
+    - platform: state
+      entity_id: media_player.living_room_tv
+      from: 'playing'
+      to: 'idle'
+      for:
+        minutes: 15
+    - platform: state
+      entity_id: media_player.living_room_tv
+      from: 'idle'
+      to: 'off'
+      for:
+        minutes: 15
+    - platform: state
+      entity_id: media_player.living_room_tv
+      from: 'playing'
+      to: 'paused'
+      for:
+        minutes: 15
+    - platform: state
+      entity_id: media_player.living_room_tv
+      from: 'paused'
+      to: 'off'
+      for:
+        minutes: 15
+  action:
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.soundbar
+
+- alias: 'Weekday Vacuum'
+  trigger:
+    platform: time
+    at: '08:00:00'
+  condition:
+    - condition: time
+      weekday:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+    - condition: state
+      entity_id: input_boolean.home
+      state: 'off'
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: 'off'
+  action:
+    service: vacuum.start

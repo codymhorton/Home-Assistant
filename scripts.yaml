@@ -1,0 +1,259 @@
+arriving_home:
+  sequence:
+  - service: light.turn_on
+    entity_id: light.living_room
+  - service: light.turn_on
+    data:
+      entity_id: light.hyperion
+      rgb_color: [255,190,100]
+  - service: switch.turn_on
+    entity_id: switch.kitchen_light
+  - service: switch.turn_on
+    entity_id: switch.bathroom_plug
+  - service_template: > 
+      {% if states.climate.nest.attributes.current_temperature | int > 72 %}
+        switch.turn_on
+      {% endif %}
+    entity_id: switch.living_room_fan
+  - service: climate.set_operation_mode
+    data:
+      entity_id: climate.nest
+      operation_mode: auto
+  - service: climate.set_temperature
+    data_template:
+      entity_id: climate.nest
+      target_temp_high: '{{ states.input_number.air_temp.state | int}}'
+      target_temp_low: '65'
+  - service: shell_command.tv_on
+  - delay: '00:00:25'
+  - service: shell_command.tv_change
+
+leaving_home:
+  sequence:
+  - service: light.turn_off
+    entity_id: light.living_room
+  - service: light.turn_off
+    data:
+      entity_id: light.hyperion
+  - service: light.turn_off
+    entity_id: light.hallway_1
+  - service: light.turn_off
+    entity_id: light.hallway_2
+  - service: light.turn_off
+    entity_id: light.bedroom
+  - service: switch.turn_off
+    entity_id: switch.living_room_fan
+  - service: switch.turn_off
+    entity_id: switch.kitchen_light
+  - service: switch.turn_off
+    entity_id: switch.bathroom_plug
+  - service: climate.set_operation_mode
+    data:
+      entity_id: climate.nest
+      operation_mode: eco
+  - service: shell_command.tv_off
+
+bedtime:
+  sequence:
+  - service: light.turn_off
+    entity_id: light.living_room
+  - service: light.turn_off
+    data:
+      entity_id: light.hyperion
+  - service: light.turn_off
+    entity_id: light.hallway_1
+  - service: light.turn_off
+    entity_id: light.hallway_2
+  - service: switch.turn_off
+    entity_id: switch.kitchen_light
+  - service: switch.turn_off
+    entity_id: switch.living_room_fan
+  - service: switch.turn_off
+    entity_id: switch.bathroom_plug
+  - service: shell_command.tv_off
+  - service: light.turn_on
+    data:
+      entity_id: light.bedroom
+      brightness_pct: '100'
+  - service: climate.set_operation_mode
+    data:
+      entity_id: climate.nest
+      operation_mode: auto
+  - service: climate.set_temperature
+    data:
+      entity_id: climate.nest
+      target_temp_high: '75'
+      target_temp_low: '65'
+  - service: switch.turn_off
+    entity_id: switch.candles
+
+goodnight:
+  sequence:
+  - service: light.turn_off
+    data:
+      entity_id: light.bedroom
+      transition: '120'
+
+goodmorning:
+  sequence:
+  - service: light.turn_on
+    entity_id: light.living_room
+  - service: light.turn_on
+    data:
+      entity_id: light.hyperion
+      rgb_color: [255,190,100]
+  - service: switch.turn_on
+    entity_id: switch.kitchen_light
+  - service: switch.turn_on
+    entity_id: switch.bathroom_plug
+  - service_template: > 
+      {% if states.climate.nest.attributes.current_temperature | int > 72 %}
+        switch.turn_on
+      {% endif %}
+    entity_id: switch.living_room_fan
+  - service: climate.set_operation_mode
+    data:
+      entity_id: climate.nest
+      operation_mode: auto
+  - service: climate.set_temperature
+    data_template:
+      entity_id: climate.nest
+      target_temp_high: '{{ states.input_number.air_temp.state | int}}'
+      target_temp_low: '65'
+  - service: shell_command.tv_on
+  - delay: '00:00:25'
+  - service: shell_command.tv_change
+
+vacuum_on:
+  sequence:
+  - service: vacuum.turn_on
+
+vacuum_off:
+  sequence:
+  - service: vacuum.turn_off
+
+colder_for_duration:
+  sequence:
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.nest
+        operation_mode: auto
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.nest
+        target_temp_high: '{{states.climate.nest.attributes.target_temp_high - 5}}'
+        target_temp_low: '65'
+    - delay: '00:{{time_var}}:00'
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.nest
+        operation_mode: auto
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.nest
+        target_temp_high: '{{states.climate.nest.attributes.target_temp_high + 5}}'
+        target_temp_low: '65'
+
+warmer_for_duration:
+  sequence:
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.nest
+        operation_mode: auto
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.nest
+        target_temp_high: '{{states.climate.nest.attributes.target_temp_high}}'
+        target_temp_low: '{{states.climate.nest.attributes.target_temp_low + 5}}'
+    - delay: '00:{{time_var}}:00'
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.nest
+        operation_mode: auto
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.nest
+        target_temp_high: '{{states.climate.nest.attributes.target_temp_high}}'
+        target_temp_low: '{{states.climate.nest.attributes.target_temp_low + 5}}'
+
+tv_volume_up1:
+  sequence:
+  - service_template: > 
+      {% if states.input_number.tv_volume_up.state | int > 0 %}
+        switch.turn_on
+      {% endif %}
+    entity_id: switch.volume
+  - service_template: > 
+      {% if states.input_number.tv_volume_up.state | int > 0 %}
+        input_number.set_value
+      {% endif %}
+    data_template:
+      entity_id: input_number.tv_volume_up
+      value: '{{ states.input_number.tv_volume_up.state | int - 1}}'
+  - delay:
+      milliseconds: 15
+  - service_template: > 
+      {% if states.input_number.tv_volume_up.state | int > 0 %}
+        script.tv_volume_up2
+      {% endif %}
+tv_volume_up2:
+  sequence:
+  - service_template: > 
+      {% if states.input_number.tv_volume_up.state | int > 0 %}
+        switch.turn_on
+      {% endif %}
+    entity_id: switch.volume
+  - service_template: > 
+      {% if states.input_number.tv_volume_up.state | int > 0 %}
+        input_number.set_value
+      {% endif %}
+    data_template:
+      entity_id: input_number.tv_volume_up
+      value: '{{ states.input_number.tv_volume_up.state | int - 1}}'
+  - delay:
+      milliseconds: 15
+  - service_template: > 
+      {% if states.input_number.tv_volume_up.state | int > 0 %}
+        script.tv_volume_up1
+      {% endif %}
+
+tv_volume_down1:
+  sequence:
+  - service_template: > 
+      {% if states.input_number.tv_volume_down.state | int > 0 %}
+        switch.turn_off
+      {% endif %}
+    entity_id: switch.volume
+  - service_template: > 
+      {% if states.input_number.tv_volume_down.state | int > 0 %}
+        input_number.set_value
+      {% endif %}
+    data_template:
+      entity_id: input_number.tv_volume_down
+      value: '{{ states.input_number.tv_volume_down.state | int - 1}}'
+  - delay:
+      milliseconds: 15
+  - service_template: > 
+      {% if states.input_number.tv_volume_down.state | int > 0 %}
+        script.tv_volume_down2
+      {% endif %}
+tv_volume_down2:
+  sequence:
+  - service_template: > 
+      {% if states.input_number.tv_volume_down.state | int > 0 %}
+        switch.turn_off
+      {% endif %}
+    entity_id: switch.volume
+  - service_template: > 
+      {% if states.input_number.tv_volume_down.state | int > 0 %}
+        input_number.set_value
+      {% endif %}
+    data_template:
+      entity_id: input_number.tv_volume_down
+      value: '{{ states.input_number.tv_volume_down.state | int - 1}}'
+  - delay:
+      milliseconds: 15
+  - service_template: > 
+      {% if states.input_number.tv_volume_down.state | int > 0 %}
+        script.tv_volume_down1
+      {% endif %}

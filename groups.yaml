@@ -1,0 +1,162 @@
+default_view:
+  view: yes
+  icon: mdi:home 
+  entities:
+    - group.people
+    - group.vacation
+    - group.guests
+    - group.front_door
+    - group.climate
+    - group.vacuum
+    - group.living_room
+    - group.kitchen
+    - group.master_bedroom
+    - group.bathroom
+    - group.hallway
+people:
+  name: People
+  view: no
+  entities:
+    - sensor.cody
+    - sensor.cassidy
+front_door:
+  name: Front Door
+  view: no
+  entities:
+    - lock.front_door
+    - sensor.front_door
+vacation:
+  name: Vacation
+  view: no
+  entities:
+    - input_boolean.vacation_mode
+guests:
+  name: Guests
+  view: no
+  entities:
+    - input_boolean.guest_mode
+climate:
+  name: Climate
+  view: no
+  entities:
+    - climate.nest
+living_room:
+  name: Living Room
+  view: no
+  entities:
+    - switch.candles
+    - switch.living_room_fan
+    - light.living_room
+    - light.hyperion
+living_room_lamp_lights:
+  name: Living Room Lamp Lights
+  view: no
+  entities:
+    - light.living_room_lamp_1
+    - light.living_room_lamp_2
+living_room_fan_lights:
+  name: Living Room Fan Lights
+  view: no
+  entities:
+    - light.living_room_fan_light_1
+    - light.living_room_fan_light_2
+    - light.living_room_fan_light_3
+    - light.living_room_fan_light_4
+kitchen:
+  name: Kitchen
+  view: no
+  entities:
+    - switch.kitchen_light
+    - sensor.fridge
+hallway:
+  name: Hallway
+  view: no
+  entities:
+    - light.hallway_light_1
+    - light.hallway_light_2
+bathroom:
+  name: Bathroom
+  view: no
+  entities:
+    switch.bathroom_plug
+master_bedroom:
+  name: Master Bedroom
+  view: no
+  entities:
+    - light.bedroom
+vacuum:
+  name: Vacuum
+  view: no
+  entities:
+    - vacuum.xiaomi_vacuum_cleaner
+media:
+  name: Media
+  view: yes
+  icon: mdi:theater
+  entities:
+    - group.entertainment_center
+    - group.google_homes
+entertainment_center:
+  name: Entertainment Center
+  view: no
+  entities:
+    - switch.tv
+    - switch.soundbar
+    - switch.volume
+    - media_player.living_room_tv
+google_homes:
+  name: Google Homes
+  view: no
+  entities:
+    - media_player.home_group
+    - media_player.bathroom_speaker
+    - media_player.kitchen_speaker
+    - media_player.bedroom_speaker
+servers:
+  name: Servers
+  view: yes
+  icon: mdi:desktop-classic
+  entities:
+    - group.home_pc
+    - group.ha
+    - group.pi
+    - group.printer
+pi:
+  name: Pi
+  view: no
+  entities:
+    - sensor.processor_use
+    - sensor.memory_use_percent
+    - sensor.disk_free_
+    - sensor.since_last_boot
+ha:
+  name: Home Assistant
+  view: no
+  entities:
+    - sensor.netdata_systemcpu
+    - sensor.netdata_systemram
+    - sensor.netdata_systemload
+    - sensor.netdata_systemprocesses
+    - sensor.netdata_disk_space_
+    - sensor.netdata_systemuptime
+    - sensor.ssl_certificate_expiry
+home_pc:
+  name: Home PC
+  view: no
+  entities:
+    - sensor.jarvis_intel_core_i73770k_load_cpu_total
+    - sensor.jarvis_generic_memory_data_used_memory
+    - sensor.jarvis_generic_memory_data_available_memory
+    - sensor.jarvis_samsung_ssd_840_evo_250gb_load_used_space
+printer:
+  name: Printer
+  view: no
+  entities:
+    - sensor.octoprint_actual_bed_temp
+    - sensor.octoprint_actual_tool0_temp
+    - sensor.octoprint_current_state
+    - sensor.octoprint_job_percentage
+    - sensor.octoprint_target_bed_temp
+    - sensor.octoprint_target_tool0_temp
+    - sensor.octoprint_time_elapsed
+    - sensor.octoprint_time_remaining

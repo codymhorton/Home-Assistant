@@ -1,0 +1,457 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: !secret lat 
+  longitude: !secret long
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 53
+  # metric for Metric, imperial for Imperial
+  unit_system: imperial
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: America/New_York
+  # Customization file
+  customize: !include customize.yaml
+
+# Enables the frontend
+frontend:
+
+# Enables configuration UI
+config:
+
+# Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+http:
+  api_password: !secret http_password
+  ssl_certificate: !secret http_cert
+  ssl_key: !secret http_key
+  base_url: !secret http_base
+
+updater:
+  # Optional, allows Home Assistant developers to focus on popular components.
+  # include_used_components: true
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables a map showing the location of tracked devices
+map:
+
+# Track the sun
+sun:
+
+binary_sensor:
+  - platform: bayesian
+    prior: 0.5
+    name: 'Cody Presence'
+    probability_threshold: 0.9
+    observations:
+      - entity_id: device_tracker.10f1f281aa38
+        prob_given_true: 0.9
+        prob_given_false: 0.1
+        platform: 'state'
+        to_state: 'home'
+      - entity_id: device_tracker.cody_pixel
+        prob_given_true: 0.9
+        prob_given_false: 0.4
+        platform: 'state'
+        to_state: 'home'
+      - entity_id: device_tracker.cody
+        prob_given_true: 0.9
+        prob_given_false: 0.1
+        platform: 'state'
+        to_state: 'home'
+  - platform: bayesian
+    prior: 0.5
+    name: 'Cassidy Presence'
+    probability_threshold: 0.9
+    observations:
+      - entity_id: device_tracker.undefined
+        prob_given_true: 0.8
+        prob_given_false: 0.1
+        platform: 'state'
+        to_state: 'home'
+      - entity_id: device_tracker.cassidy_iphone
+        prob_given_true: 0.7
+        prob_given_false: 0.2
+        platform: 'state'
+        to_state: 'home'
+      - entity_id: device_tracker.cassidy
+        prob_given_true: 0.9
+        prob_given_false: 0.1
+        platform: 'state'
+        to_state: 'home'
+sensor:
+  - platform: yr
+  - platform: time_date
+    display_options:
+      - 'time'
+  #- platform: ups
+  #  username: !secret cody_email
+  #  password: !secret ups_password
+  #- platform: fedex
+  #  username: !secret fedex_username
+  #  password: !secret fedex_password
+  #- platform: fedex
+  #  username: !secret cassfedex_username
+  #  password: !secret cassfedex_password
+  - platform: openhardwaremonitor
+    host: '192.168.1.122'
+  - platform: netdata
+    host: localhost
+    resources:
+      system.cpu:
+        element: system
+        element: iowait
+        element: softirq
+        element: user
+      system.ram:
+        element: free
+        element: used
+      system.load:
+        element: load1
+        element: load5
+        element: load15
+      system.uptime:
+        element: uptime
+      system.processes:
+        element: running
+      disk_space._:
+        element: avail
+        element: used
+  - platform: cert_expiry
+    host: home.hortondomain.com
+  - platform: systemmonitor
+    resources:
+      - type: disk_free
+        arg: /
+      - type: memory_use_percent
+      - type: load_15m
+      - type: processor_use
+      - type: since_last_boot
+  - platform: octoprint
+    name: OctoPrint
+    monitored_conditions:
+      - Current State
+      - Temperatures
+      - Job Percentage
+      - Time Elapsed
+      - Time Remaining
+  - platform: template
+    sensors:
+      fridge:
+        friendly_name: Fridge
+        icon_template: mdi:fridge-filled-top
+        value_template: >-
+          {% if is_state('binary_sensor.ecolink_doorwindow_sensor_sensor_3', 'off') %}
+            Closed
+          {% else %}
+            Open
+          {% endif %}
+      front_door:
+        friendly_name: Front Door
+        icon_template: >-
+          {% if is_state('binary_sensor.ecolink_doorwindow_sensor_sensor_2', 'off') %}
+            mdi:door-closed
+          {% else %}
+            mdi:door-open
+          {% endif %}
+        value_template: >-
+          {% if is_state('binary_sensor.ecolink_doorwindow_sensor_sensor_2', 'off') %}
+            Closed
+          {% else %}
+            Open
+          {% endif %}
+      cassidy:
+        friendly_name: Cassidy
+        entity_picture_template: /local/cass.jpg
+        value_template: >-
+          {% if is_state('binary_sensor.cassidy_presence', 'off') %}
+            Away
+          {% else %}
+            Home
+          {% endif %}
+      cody:
+        friendly_name: Cody
+        entity_picture_template: /local/cody.jpg
+        value_template: >-
+          {% if is_state('binary_sensor.cody_presence', 'off') %}
+            Away
+          {% else %}
+            Home
+          {% endif %}
+
+# Text to speech
+tts:
+  - platform: google
+
+zwave:
+  usb_path: /dev/zstick
+
+vacuum:
+  - platform: xiaomi_miio
+    host: "192.168.1.148"
+    token: !secret xiaomi_token
+
+octoprint:
+  host: 192.168.1.247
+  api_key: !secret octo_pi
+  bed: true
+  number_of_tools: 1
+
+light:
+  - platform: hyperion
+    host: 192.168.1.76
+
+nest:
+  client_id: !secret nest_client_id
+  client_secret: !secret nest_client_secret
+
+hue:
+  bridges:
+    - host: '192.168.1.249'
+      allow_unreachable: true
+      allow_hue_groups: true
+
+august:
+  login_method: email
+  username: !secret cody_email
+  password: !secret august_password
+
+switch:
+  - platform: tplink
+    host: "192.168.1.140"
+    name: "Living Room Fan"
+  - platform: tplink
+    host: "192.168.1.171"
+    name: "Kitchen Light"
+  - platform: tplink
+    host: "192.168.1.123"
+    name: "Bathroom Plug"
+  - platform: wake_on_lan
+    name: "On/Off"
+    host: "192.168.1.122"
+    mac_address: "74:D0:2B:28:62:72"
+    turn_off:
+      service: shell_command.turn_off_pc
+  - platform: broadlink
+    host: 192.168.1.74
+    mac: '34:EA:34:8F:15:48'
+    timeout: 15
+    switches:
+      tv:
+        friendly_name: "Vizio TV"
+        command_on: "JgBQAAABKZMUEhMSEzcUERQSExITEhMSFDYUNxMSEzcUNxM3EzcUNxMSExITEhQ2FBITEhMSExIUNhQ3EzcUERQ2FDcTNxQ2FAAFBwABKkkUAA0FAAAAAAAAAAA="
+        command_off: "JgBQAAABKZMUEhMSEzcUERQSExITEhMSFDYUNxMSEzcUNxM3EzcUNxMSExITEhQ2FBITEhMSExIUNhQ3EzcUERQ2FDcTNxQ2FAAFBwABKkkUAA0FAAAAAAAAAAA="
+      soundbar:
+        friendly_name: "Vizio Soundbar"
+        command_on: "JgBQAAABJpURFBIUERQRFBEUERQRFBEUEjgSORE5ETkRORE5ETkROREUERQRFBIUERQRFBE5ERQRORE5ETkRORI4EjgSFBE5EQAFFQABJUwRAA0FAAAAAAAAAAA="
+        command_off: "JgBQAAABJpURFBIUERQRFBEUERQRFBEUEjgSORE5ETkRORE5ETkROREUERQRFBIUERQRFBE5ERQRORE5ETkRORI4EjgSFBE5EQAFFQABJUwRAA0FAAAAAAAAAAA="
+      volume:
+        friendly_name: "Volume"
+        command_on: "JgBQAAABKZMTExMSEzcTEhMSFBITEhMSEzcTOBMSEzcTNxQ3EzcTNxQSEzcTEhMSExIUEhITExITNxMSFDcTNxM3EzgTNxM3EwAFCAABKUoTAA0FAAAAAAAAAAA="
+        command_off: "JgBQAAABKZQTEhMSEzcTEhMTExITEhMSEzcTOBMSEzcTNxQ3EzcTNxQ3EzcTEhMSFBITEhMSExITEhMSFDcTNxM3FDcTNxM3EwAFCAABKUoTAA0FAAAAAAAAAAA="
+      candles:
+        friendly_name: "Candles"
+        command_on: "JgBQAAABJpYRFBEUERQRFBEUEhQRFBE4ETgSOBE4EjgROBE5ETgRFBEUEjgRFBEUETkRFBEUERQROBIUETgROBIUETgROBI4EQAFHwABJ0sRAA0FAAAAAAAAAAA="
+        command_off: "JgBYAAABJ5URFBEUERQSFBEUERQRFBE4EjgROBE5ETgRORE4ETgSFBEUETgRORE4ETgSFBEUERYPOBITEhQRFBEUETgSOBE4EQAFIAABJksSAAxSAAEnSxEADQU="
+      tv_menu:
+        friendly_name: "TV Menu"
+        command_on: "JgBQAAABJ5USFBEUETkSExEUEhQRFBEUETkROhEUETkRORI5ETkRORI5ETkRORI5ERQROREUEhQRFBEUERQRFBI5ERQRORE5EgAFCQABKEsRAA0FAAAAAAAAAAA="
+      tv_down:
+        friendly_name: "TV Down"
+        command_on: "JgBQAAABJ5USFBEUETkRFBIUERQRFBEUETkSOREUETkSORE5ETkROhEUETkRORIUERQRFBE5EhQROREUERQROhE5ETkRFBI5EgAFCQABJ0wRAA0FAAAAAAAAAAA="
+      tv_ok:
+        friendly_name: "TV Ok"
+        command_on: "JgBQAAABJ5YRFBEUETkRFBIUERQRFBEUETkSOREUETkRORI5ETkROhEUERQROREUEhQRFBE5ERQROhE5ERQRORI5ETkRFBE5EgAFCgABJ0sSAA0FAAAAAAAAAAA="
+
+notify:
+  - name: pushbullet
+    platform: pushbullet
+    api_key: !secret pushbullet_key
+  - name: email
+    platform: smtp
+    server: smtp.gmail.com
+    port: 587
+    timeout: 15
+    sender: !secret cody_email
+    encryption: starttls
+    username: !secret cody_email
+    password: !secret gmail_pass
+    recipient:
+      - !secret cody_email
+      - !secret cassidy_email
+    sender_name: Home Assistant
+
+zone:
+  - name: Work
+    latitude: !secret work_lat
+    longitude: !secret work_long
+    radius: 500
+    icon: mdi:briefcase
+  - name: Home
+    latitude: !secret lat
+    longitude: !secret long
+    radius: 20
+    icon: mdi:home
+
+device_tracker:
+  - platform: owntracks
+  - platform: asuswrt
+    host: 192.168.1.1
+    username: !secret router_user
+    password: !secret router_pass
+    track_new_devices: yes
+  - platform: ping
+    hosts:
+      cassidy: 192.168.1.168
+      cody: 192.168.1.37
+
+panel_iframe:
+  configurator:
+    title: Configurator
+    icon: mdi:wrench
+    url: !secret configurator_url
+
+input_boolean:
+  home:
+    name: Home State
+    icon: mdi:home
+  vacation_mode:
+    name: Vacation Mode
+    icon: mdi:image-filter-hdr
+  soundbar:
+    name: Soundbar
+  door_closed:
+    name: Door Closed
+  motion_service:
+    name: Motion Service
+  guest_mode:
+    name: Guests
+    icon: mdi:account-multiple
+
+input_number:
+  tv_volume_up:
+    name: TV Volume Up
+    initial: 0
+    min: 0
+    max: 10
+    step: 1
+  tv_volume_down:
+    name: TV Volume Down
+    initial: 0
+    min: 0
+    max: 10
+    step: 1
+  air_temp:
+    name: Air Temp
+    initial: 78
+    min: 75
+    max: 78
+
+shell_command:
+  renew_ssl: 'sudo /usr/bin/certbot renew --quiet --no-self-upgrade --standalone --preferred-challenges tls-sni-01 --tls-sni-01-port 443 --pre-hook "sudo systemctl stop home-assistant@homeassistant.service" --post-hook "sudo systemctl start home-assistant@homeassistant.service"'
+  tv_on: !secret cec_on
+  tv_off: !secret cec_off
+  tv_change: !secret cec_change
+
+google_assistant:
+  project_id: !secret ga_project_id
+  client_id: !secret ga_client_id
+  access_token: !secret ga_access_token
+  agent_user_id: !secret cody_email
+  api_key: !secret ga_api_key
+  expose_by_default: false
+  entity_config:
+    script.leaving_home:
+      name: Leaving Home
+      expose: true
+    script.bedtime:
+      name: Bedtime
+      expose: true
+    script.arriving_home:
+      name: Arriving Home
+      expose: true
+    script.goodmorning:
+      name: Good Morning
+      expose: true
+    script.goodnight:
+      name: Good Night
+      expose: true
+    script.vacuum_on:
+      name: Vacuum On
+      expose: true
+    script.vacuum_off:
+      name: Vacuum Off
+      expose: true
+
+mqtt:
+  broker: localhost
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+
+# View all events in a logbook
+logbook:
+  include:
+    domains:
+      - switch
+      - media_player
+      - script
+      - automation
+      - light
+      - lock
+      - input_boolean
+      - vacuum
+      - climate
+    entities:
+      - sensor.nest_thermostat_humidity
+      - sensor.nest_thermostat_hvac_state
+      - sensor.nest_thermostat_operation_mode
+      - sensor.nest_thermostat_target
+      - sensor.nest_thermostat_temperature
+      - sensor.fridge
+      - sensor.freezer
+      - sensor.cody
+      - sensor.cassidy
+      - binary_sensor.nest_thermostat_online
+      - binary_sensor.nest_thermostat_is_using_emergency_heat
+      - binary_sensor.nest_thermostat_is_locked
+      - binary_sensor.nest_thermostat_has_leaf
+      - binary_sensor.nest_thermostat_fan
+
+recorder:
+  db_url: !secret mysql
+  purge_keep_days: 30
+  include:
+    domains:
+      - switch
+      - media_player
+      - script
+      - automation
+      - light
+      - lock
+      - input_boolean
+      - vacuum
+      - climate
+    entities:
+      - sensor.load_15m
+      - sensor.processor_use
+      - sensor.memory_use_percent
+      - sensor.disk_free_
+      - sensor.nest_thermostat_humidity
+      - sensor.nest_thermostat_hvac_state
+      - sensor.nest_thermostat_operation_mode
+      - sensor.nest_thermostat_target
+      - sensor.nest_thermostat_temperature
+      - sensor.fridge
+      - sensor.freezer
+      - sensor.cody
+      - sensor.cassidy
+
+history:
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml

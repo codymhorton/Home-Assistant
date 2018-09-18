@@ -1,0 +1,15 @@
+sensor.processor_use:
+  friendly_name: CPU Used
+sensor.memory_use_percent:
+  friendly_name: RAM Used
+sensor.disk_free_:
+  friendly_name: Disk Free
+sensor.since_last_boot:
+  friendly_name: Uptime
+  icon: mdi:arrow-up-bold
+sensor.front_door:
+  friendly_name: State
+lock.front_door:
+  friendly_name: Lock
+sensor.nest_thermostat_humidity:
+  unit_of_measurement: '%hm'
